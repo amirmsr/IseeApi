@@ -3,8 +3,10 @@ import multer from "multer";
 import { Comment, Image, User } from "../mongo.js";
 import { isAdmin, isRegister } from "../middlewares/auth-middleware.js";
 import { validateComment, validateParamId } from "../middlewares/validation-midleware.js";
-
 const router = express.Router();
+import Client from 'ssh2-sftp-client'
+import fs from 'fs'
+
 
 
 router.get('/', async(request, response) => {
@@ -78,8 +80,10 @@ router.get('/:userId', async (request, response) => {
 // création de l'objet de stockage des fichiers
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-       cb(null, '../../iSee/public/videos');  // dossier dans lequel les fichiers seront stockés
-      
+        const path = "//DESKTOP-CV36JEK/Users/clopa/Documents/SupInfo/B3/Cours/3PROJ/Infra_Test/TestLocal"
+        cb(null, path);  // dossier dans lequel les fichiers seront stockés 
+/*           cb(null, '../../iSee/public/videos'); 
+ */
     },
     filename: function (req, file, cb) {
       cb(null, file.originalname); // nom du fichier enregistré
@@ -104,6 +108,15 @@ const storage = multer.diskStorage({
     });
     
   });
+
+
+
+
+   
+ 
+
+
+
 
 
 

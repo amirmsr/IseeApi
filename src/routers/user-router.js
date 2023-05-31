@@ -149,7 +149,7 @@ router.post("/login", validateLogin, async  (request, response) => {
             return
         }
         if (result) {
-            const token = jsonwebtoken.sign({name: request.body.username}, process.env.SECRET, {expiresIn: 600})
+            const token = jsonwebtoken.sign({name: request.body.username}, process.env.SECRET, {expiresIn: 1000})
             response.status(201).json( {"status": "Success Login", "user": user.username, "role": user.role, "token": token });
         } else {
             response.status(400).json("Incorrect password")

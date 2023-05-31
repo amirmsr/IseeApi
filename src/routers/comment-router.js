@@ -1,7 +1,8 @@
 import express, { response } from "express";
-import { Comment, Video } from "../mongo.js";
+import { Comment, Video, Image } from "../mongo.js";
 import { isAdmin, isRegister } from "../middlewares/auth-middleware.js";
 import { validateComment, validateParamId } from "../middlewares/validation-midleware.js";
+import { io } from "../server.js";
 
 /**
  * @swagger
@@ -64,11 +65,49 @@ const router = express.Router();
  *         description: Unauthorized access
  */
 
-router.get("/", isAdmin, async(request, response) => {
+router.get("/", async(request, response) => {
     const comments = await Comment.find();
     response.status(200).json(comments)
 })
 
+/* router.get("/:videoId", async (request, response) => {
+    const videoId = request.params.videoId;
+    
+    try {
+      const video = await Image.findById(videoId);
+      
+      if (video) {
+        const comments = await Comment.find({ id_video: videoId });
+        response.status(200).json(comments);
+      } else {
+        response.status(404).json("Video not found");
+      }
+    } catch (error) {
+      response.status(500).json("Internal Server Error");
+    }
+});
+   */
+router.get("/:videoId", async (request, response) => {
+    const videoId = request.params.videoId;
+  
+    try {
+      const video = await Image.findById(videoId);
+  
+      if (video) {
+        const comments = await Comment.find({ id_video: videoId });
+  
+        // Émettre les commentaires en temps réel à l'aide de Socket.IO
+        io.emit("comments", comments);
+  
+        response.status(200).json(comments);
+      } else {
+        response.status(404).json("Video not found");
+      }
+    } catch (error) {
+      response.status(500).json("Internal Server Error");
+    }
+});
+  
 /**
  * @swagger
  * /comments:
@@ -108,7 +147,7 @@ router.get("/", isAdmin, async(request, response) => {
  *   description: Operations about comments
  */
 
-router.post("/", [isRegister, validateParamId, validateComment], async (request, response) => {
+/* router.post("/", [isRegister, validateParamId, validateComment], async (request, response) => {
     const videoId = request.query.videoId
     const video = await Video.findById(videoId)
     if (video) {
@@ -125,10 +164,48 @@ router.post("/", [isRegister, validateParamId, validateComment], async (request,
     } else {
         response.status(404).json("Video not found")
     }
-})
+}) */
+/* router.post("/", [isRegister], async (request, response) => {
+    const videoId = request.query.videoId
+    const video = await Image.findById(videoId)
+    if (video) {
+        const comment = await Comment.create({
+            ...request.body,
+            id_user: request.username,
+            id_video: videoId
+        })
+
+        video.comments.push(comment)
+        await video.save()
+
+        response.status(201).json(comment)
+    } else {
+        response.status(404).json("Video not found")
+    }
+}) */
+router.post("/", [isRegister], async (request, response) => {
+    const videoId = request.query.videoId;
+    const video = await Image.findById(videoId);
+  
+    if (video) {
+        const comment = await Comment.create({
+            ...request.body,
+            id_user: request.username,
+            id_video: videoId
+        })
+  
+      // Émettre le commentaire en temps réel
+      io.emit("comments", comment);
+  
+      response.status(201).json(comment);
+    } else {
+      response.status(404).json("Video not found");
+    }
+  });
 
 /**
- * @swagger
+ * @swa
+ * gger
  * /comments/{id}:
  *  delete:
  *     summary: Delete a comment
