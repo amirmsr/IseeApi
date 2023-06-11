@@ -41,20 +41,22 @@ mongoose.connection.on("connected", () => {
 // connectInMemoryDB();
 
 const CommentSchema = new mongoose.Schema({
-    id_video: String,
-    id_user: String,
+    id_video: { type: mongoose.Schema.Types.ObjectId, ref: 'Video' },
+    username: String,
     date: {type: Date, default: new Date()},
     contenu: String
 });
 
 const VideoSchema = new mongoose.Schema({
-    nom_fichier: String,
-    auteur: String,
-    cache: {type: Boolean, default: false},
+    title: String,
+    description: String,
+    file_name: String,
+    username: String,
+    hidden: {type: Boolean, default: false},
     blocked: {type: Boolean, default: false},
     nombre_vue: {type: Number, default: 0},
     date_ajout: {type: Date, default: new Date()},
-    comments: [CommentSchema]
+    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }]
 });
 
 const ImageSchema = new mongoose.Schema({
@@ -74,13 +76,12 @@ const UserSchema = new mongoose.Schema({
     email: String,
     username: String,
     password: String,
-    role: {type: String, default: "user"},
+    isAdmin: {type: Boolean, default: false},
     verified: {type: Boolean, default: false},
-    videos: [VideoSchema],
+    comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
+    videos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Video' }],
     images: [ImageSchema]
 })
-
-
 
 export const User = mongoose.model("User", UserSchema)
 export const Video = mongoose.model("Video", VideoSchema)

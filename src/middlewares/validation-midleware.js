@@ -18,9 +18,7 @@ const userVerifSchema = yup.object({
     body: yup.object({
         email: yup.string().email().required(),
         username: yup.string().min(3).required(),
-        password: yup.string().min(3).required(),
-        role: yup.string().oneOf(["admin", "user"]).notRequired(),
-        videos: yup.array().notRequired()
+        password: yup.string().min(3).required()
     })
 })
 
@@ -33,7 +31,7 @@ const loginVerifSchema = yup.object({
 
 const videoVerifSchema = yup.object({
     body: yup.object({
-        nom_fichier: yup.string().required()
+        title: yup.string().required()
     })
 })
 
@@ -48,7 +46,7 @@ export const validateLogin = validate(loginVerifSchema);
 export const validateVideo = validate(videoVerifSchema);
 export const validateComment = validate(commentVerifSchema);
 export const validateParamId = (request, response, next) => {
-    if (mongoose.isValidObjectId(request.params.id) || mongoose.isValidObjectId(request.query.videoId)) {
+    if (mongoose.isValidObjectId(request.params.id) || mongoose.isValidObjectId(request.query.videoId) || mongoose.isValidObjectId(request.params.videoId)) {
         next()
     } else {
         response.status(400).json("Invalid id in query")
