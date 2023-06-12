@@ -1,13 +1,23 @@
 import express from "express"
 import jsonwebtoken from "jsonwebtoken"
-import dotenv from "dotenv"
 import { User, Video, Comment } from "../mongo.js"
 import bcrypt from "bcrypt"
 import { validateUser, validateLogin } from "../middlewares/validation-midleware.js"
 import { isRegister, isAdmin, isAdminOrCurrentUser } from "../middlewares/auth-middleware.js"
 import { sendVerificationEmail } from "../mailer.js"
 
-dotenv.config()
+const colorPalettes = [
+    ["69d2e7", "a7dbd8", "e0e4cc", "f38630", "fa6900"],
+    ["fe4365", "fc9d9a", "f9cdad", "c8c8a9", "83af9b"],
+    ["ecd078", "d95b43", "c02942", "542437", "53777a"],
+    ["556270", "4ecdc4", "c7f464", "ff6b6b", "c44d58"],
+    ["774f38", "e08e79", "f1d4af", "ece5ce", "c5e0dc"],
+    ["e8ddcb", "cdb380", "036564", "033649", "031634"],
+    ["490a3d", "bd1550", "e97f02", "f8ca00", "8a9b0f"],
+    ["594f4f", "547980", "45ada8", "9de0ad", "e5fcc2"],
+    ["00a0b0", "6a4a3c", "cc333f", "eb6841", "edc951"],
+    ["e94e77", "d68189", "c6a49a", "c6e5d9", "f4ead5"]
+];
 
 const router = express.Router()
 
@@ -38,8 +48,12 @@ router.post("/", validateUser, async (request, response) => {
                 response.status(406).json(error)
             } else {
                 await sendVerificationEmail(request.body.email, request.body.username)
+
+                const randomColorPalette = colorPalettes[Math.floor(Math.random() * 10)]
+                
                 const newUser = await User.create({
                     ...request.body,
+                    profilePicture: `https://source.boringavatars.com/beam/500/${request.body.username}?colors=${randomColorPalette[0]},${randomColorPalette[1]},${randomColorPalette[2]},${randomColorPalette[3]},${randomColorPalette[4]}`,
                     password: hashedPasswd
                 })
                 response.status(201).json(newUser)

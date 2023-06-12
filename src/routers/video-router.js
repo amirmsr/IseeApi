@@ -1,9 +1,12 @@
 import express from'express';
+import dotenv from "dotenv"
 import { Comment, User, Video } from '../mongo.js';
 import { validateParamId, validateVideo } from '../middlewares/validation-midleware.js';
 import { isAdmin, isAdminOrVideoOwner, isRegister } from '../middlewares/auth-middleware.js';
 import Busboy from 'busboy';
 import {Client} from "basic-ftp"
+
+dotenv.config()
 
 const router = express.Router();
 
@@ -26,57 +29,67 @@ router.get('/', async(request, response) => {
 })
 
 router.post('/', isRegister, async(request, response) => {
-    const busboy = Busboy({ headers: request.headers });
-    const user = await User.findOne({"username": request.username})
+    const busboy = new Busboy({ headers: request.headers });
 
-    console.log(request.body.title)
+    const user = await User.findOne({ "username": request.username });
 
-    const videoAlreadyExist = await Video.exists({"title": request.body.title, "username": user.username})
+    const videoAlreadyExist = await Video.exists({ "title": request.body.title, "username": user.username });
 
     if (videoAlreadyExist) {
-        response.status(406).json("You already have a video with this name")
-    } else {
-        busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
-            const client = new Client();
-            try {
-                await client.access({
-                host: '10.24.234.88', // Remplacez par l'adresse du serveur FTP distant
-                user: 'User', // Remplacez par votre nom d'utilisateur FTP
-                port: 21
-                });
-        
-                // Chemin de destination du fichier sur le serveur FTP distant
-                const remotePath = '/DESKTOP-CV36JEK/Users/clopa/Documents/SupInfo/B3/Cours/3PROJ/Infra_Test/TestLocal/' + filename.filename;
-        
-                // Créez un flux de lecture pour le fichier
-                const readStream = file;
-        
-                // Téléchargez le fichier sur le serveur FTP distant
-                await client.upload(readStream, remotePath);
-    
-                console.log('Video uploaded');
-            } catch (error) {
-                console.error('Error uploading video:', error);
-                response.status(500).send('Error uploading video');
-            } finally {
-                const video = await Video.create({
-                    ...request.body,
-                    username: user.username,
-                    file_name: filename.filename
-                })
-            
-                user.videos.push(video.id);
-                await user.save();
-
-                console.log(request.body);
-
-                client.close();
-
-                response.status(201).send(video);
-            }
-        });
-        request.pipe(busboy); 
+        response.status(406).json("You already have a video with this name");
+        return;
     }
+
+    const formData = {};
+
+    busboy.on('field', (fieldname, value) => {
+        formData[fieldname] = value;
+    });
+
+    busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
+        const client = new Client();
+        try {
+            await client.access({
+            host: process.env.FTP_HOST, // Remplacez par l'adresse du serveur FTP distant
+            user: 'User',
+            port: 21
+            });
+    
+            // Chemin de destination du fichier sur le serveur FTP distant
+            const remotePath = '/DESKTOP-CV36JEK/Users/clopa/Documents/SupInfo/B3/Cours/3PROJ/Infra_Test/TestLocal/' + filename.filename;
+    
+            // Créez un flux de lecture pour le fichier
+            const readStream = file;
+    
+            // Téléchargez le fichier sur le serveur FTP distant
+            await client.upload(readStream, remotePath);
+
+            console.log('Video uploaded');
+        } catch (error) {
+            console.error('Error uploading video:', error);
+            response.status(500).send('Error uploading video');
+            return
+        } finally {
+            const video = await Video.create({
+                ...formData,
+                username: user.username,
+                file_name: filename.filename
+            })
+        
+            user.videos.push(video.id);
+            await user.save();
+
+            client.close();
+
+            response.status(201).send(video);
+        }
+    });
+
+    busboy.on('finish', async () => {
+        console.log(request.body)
+    });
+
+    request.pipe(busboy); 
 })
 
 router.get('/:id', validateParamId, async(request, response) => {

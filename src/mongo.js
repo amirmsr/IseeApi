@@ -63,6 +63,7 @@ const UserSchema = new mongoose.Schema({
     email: String,
     username: String,
     password: String,
+    profilePicture: String,
     isAdmin: {type: Boolean, default: false},
     verified: {type: Boolean, default: false},
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
