@@ -1,0 +1,747 @@
+openapi: 3.0.3
+info:
+  title: Swagger iSee-API - OpenAPI 3.0
+  version: 1.0.0
+servers:
+  - url: https://localhost:3000
+tags:
+  - name: Comments
+    description: Comments of a video
+  - name: User
+    description: User management
+  - name: Videos
+    description: Video management
+paths:
+  /comments:
+    get:
+      tags:
+        - Comments
+      summary: Get all comments (Admin)
+      operationId: getAllComments
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommentDetails'
+        '500':
+          $ref: '#/components/responses/500'
+    post:
+      tags:
+        - Comments
+      summary: Create a comment (Register)
+      operationId: createComment
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: query
+          name: videoId
+          schema:
+            type: string
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentRequest'
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommentDetails'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /comments/{videoId}:
+    get:
+      tags:
+        - Comments
+      summary: Get all comments for a video
+      operationId: getCommentsByVideoId
+      parameters:
+        - name: videoId
+          in: path
+          description: Video ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VideoCommentDetails'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /comments/{id}:
+    delete:
+      tags:
+        - Comments
+      summary: Delete a comment by ID (Admin or comment owner)
+      operationId: deleteCommentById
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: id
+          in: path
+          description: Comment ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Comment deleted succesfully
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /users:
+    get:
+      tags:
+        - User
+      summary: Get all users (Admin)
+      operationId: getAllUsers
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDetails'
+        '500':
+          $ref: '#/components/responses/500'
+    post:
+      tags:
+        - User
+      summary: Create a new user
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetails'
+        '406':
+          $ref: '#/components/responses/406'
+        '500':
+          $ref: '#/components/responses/500'
+  /users/login:
+    post:
+      tags:
+        - User
+      summary: User login
+      operationId: loginUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '201':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginDetails'
+        '400':
+          $ref: '#/components/responses/400'
+        '404':
+          $ref: '#/components/responses/404'
+  /users/logout:
+    post:
+      tags:
+        - User
+      summary: User logout (Register)
+      operationId: logoutUser
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '201':
+          description: Successful logout
+  /users/verify:
+    patch:
+      tags:
+        - User
+      summary: Verify user email
+      operationId: verifyEmail
+      parameters:
+        - name: token
+          in: query
+          description: Verification token
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Mail verified successfully
+        '403':
+          $ref: '#/components/responses/403'
+        '404':
+          $ref: '#/components/responses/404'
+  /users/{username}:
+    get:
+      tags:
+        - User
+      summary: Get user by username (Admin or current user)
+      operationId: getUserByUsername
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: username
+          in: path
+          description: Username
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetails'
+        '404':
+          $ref: '#/components/responses/404'
+    put:
+      tags:
+        - User
+      summary: Update user by username (Admin or current user)
+      operationId: updateUserByUsername
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: username
+          in: path
+          description: Username
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetails'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+    delete:
+      tags:
+        - User
+      summary: Delete user by username (Admin or current user)
+      operationId: deleteUserByUsername
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: username
+          in: path
+          description: Username
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User deleted successfully
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /videos:
+    get:
+      tags:
+        - Videos
+      summary: Get all videos
+      operationId: getAllVideos
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VideoDetails'
+        '500':
+          $ref: '#/components/responses/500'
+    post:
+      tags:
+        - Videos
+      summary: Create a new video (Register)
+      operationId: createVideo
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoRequest'
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoDetails'
+        '406':
+          $ref: '#/components/responses/406'
+        '500':
+          $ref: '#/components/responses/500'
+  /videos/{identifier}:
+    get:
+      tags:
+        - Videos
+      summary: Get a video by ID or by username
+      operationId: getVideoByIdOrUsername
+      parameters:
+        - name: identifier
+          in: path
+          description: Video ID or username
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoDetails'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /videos/{id}:
+    put:
+      tags:
+        - Videos
+      summary: Update a video by ID (Admin or video owner)
+      operationId: updateVideoById
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: id
+          in: path
+          description: Video ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VideoRequest'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoDetails'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+    delete:
+      tags:
+        - Videos
+      summary: Delete a video by ID (Admin or video owner)
+      operationId: deleteVideoById
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: id
+          in: path
+          description: Video ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Video deleted successfully
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /videos/search:
+    get:
+      tags:
+        - Videos
+      summary: Get videos by search
+      operationId: getVideosBySearch
+      parameters:
+        - name: search
+          in: query
+          description: Search text
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/VideoDetails'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /videos/{id}/watch:
+    patch:
+      tags:
+        - Videos
+      summary: Watch a video
+      operationId: watchVideo
+      parameters:
+        - name: id
+          in: path
+          description: Video ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoDetails'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /videos/{id}/hide:
+    patch:
+      tags:
+        - Videos
+      summary: Hide or unhide a video (Admin or video owner)
+      operationId: hideVideo
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: id
+          in: path
+          description: Video ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoDetails'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+  /videos/{id}/block:
+    patch:
+      tags:
+        - Videos
+      summary: Block or unblock a video (Admin)
+      operationId: blockVideo
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - name: id
+          in: path
+          description: Video ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VideoDetails'
+        '404':
+          $ref: '#/components/responses/404'
+        '500':
+          $ref: '#/components/responses/500'
+components:
+  schemas:
+    CommentRequest:
+      title: CommentRequest
+      type: object
+      properties:
+        contenu:
+          type: string
+    CommentDetails:
+      title: CommentDetails
+      type: object
+      allOf: 
+        - $ref: '#/components/schemas/IdEntity'
+        - $ref: '#/components/schemas/CommentRequest'
+      properties:
+        id_video:
+          type: string
+          format: uuid
+        username:
+          type: string
+        date:
+          type: string
+          format: date-time
+    UserCommentDetails:
+      title: UserCommentDetails
+      type: object
+      allOf: 
+        - $ref: '#/components/schemas/IdEntity'
+      properties:
+        id_video:
+          type: string
+          format: uuid
+        contenu:
+          type: string
+        date:
+          type: string
+          format: date-time
+    VideoCommentDetails:
+      title: VideoCommentDetails
+      type: object
+      allOf: 
+        - $ref: '#/components/schemas/IdEntity'
+      properties:
+        username:
+          type: string
+        contenu:
+          type: string
+        date:
+          type: string
+          format: date-time
+    UserRequest:
+      title: UserRequest
+      type: object
+      properties:
+        email:
+          type: string
+        username:
+          type: string
+        password:
+          type: string
+    UserDetails:
+      title: UserDetails
+      type: object
+      allOf: 
+        - $ref: '#/components/schemas/IdEntity'
+        - $ref: '#/components/schemas/UserRequest'
+      properties:
+        isAdmin:
+          type: boolean
+        verified:
+          type: boolean
+        videos:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserVideoDetails'
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserCommentDetails'
+    VideoRequest:
+      title: VideoRequest
+      type: object
+      properties:
+        title:
+          type: string
+    VideoDetails:
+      title: VideoDetails
+      type: object
+      allOf: 
+        - $ref: '#/components/schemas/IdEntity'
+        - $ref: '#/components/schemas/VideoRequest'
+      properties:
+        username:
+          type: string
+        hidden:
+          type: boolean
+        blocked:
+          type: boolean
+        uploadDate:
+          type: string
+          format: date-time
+        views:
+          type: integer
+        comments:
+          type: array
+          items: 
+            $ref: '#/components/schemas/VideoCommentDetails'
+    UserVideoDetails:
+      title: UserVideoDetails
+      type: object
+      allOf: 
+        - $ref: '#/components/schemas/IdEntity'
+      properties:
+        title:
+          type: string
+        hidden:
+          type: boolean
+        blocked:
+          type: boolean
+        uploadDate:
+          type: string
+          format: date-time
+        views:
+          type: integer
+        comments:
+          type: array
+          items: 
+            $ref: '#/components/schemas/VideoCommentDetails'
+    LoginRequest:
+      title: LoginRequest
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+    LoginDetails:
+      title: LoginDetails
+      type: object
+      properties:
+        username:
+          type: string
+        isAdmin:
+          type: boolean
+        token:
+          type: string
+    ErrorModel:
+      title: ErrorModel
+      description: Error model following RFC7807
+      type: object
+      properties:
+        title:
+          type: string
+          description: Error title
+        detail:
+          type: string
+          description: Error detail
+    IdEntity:
+      title: id
+      type: object
+      properties:
+        _id:
+          type: string
+          format: uuid
+  responses:
+    '400':
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+    '404':
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+    '406':
+      description: Not acceptable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'
+    '500':
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorModel'

@@ -12,6 +12,7 @@
   "author": "Iyad",
   "license": "ISC",
   "dependencies": {
+    "basic-ftp": "^5.0.3",
     "bcrypt": "^5.1.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.3",
@@ -25,7 +26,7 @@
     "ssh2-sftp-client": "^9.1.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^4.6.2",
+    "yamljs": "^0.3.0",
     "yup": "^1.0.2"
-  },
-  "devDependencies": {}
+  }
 }
