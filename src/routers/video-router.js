@@ -3,7 +3,7 @@ import { Comment, User, Video } from '../mongo.js';
 import { validateParamId, validateVideo } from '../middlewares/validation-midleware.js';
 import { isAdmin, isAdminOrVideoOwner, isRegister } from '../middlewares/auth-middleware.js';
 import Busboy from 'busboy';
-import Client from "basic-ftp"
+import {Client} from "basic-ftp"
 
 const router = express.Router();
 
@@ -25,7 +25,7 @@ router.get('/', async(request, response) => {
     response.status(200).json(videos)
 })
 
-router.post('/', [isRegister, validateVideo], async(request, response) => {
+router.post('/', isRegister, async(request, response) => {
     const busboy = Busboy({ headers: request.headers });
     const user = await User.findOne({"username": request.username})
 
@@ -38,10 +38,8 @@ router.post('/', [isRegister, validateVideo], async(request, response) => {
             const client = new Client();
             try {
                 await client.access({
-                host: '10.24.231.146', // Remplacez par l'adresse du serveur FTP distant
-                //host: '163.5.23.24', // Remplacez par l'adresse du serveur FTP distant
+                host: '10.24.234.88', // Remplacez par l'adresse du serveur FTP distant
                 user: 'User', // Remplacez par votre nom d'utilisateur FTP
-                // password: 'P@ssword', // Remplacez par votre mot de passe FTP
                 port: 21
                 });
         
@@ -53,10 +51,11 @@ router.post('/', [isRegister, validateVideo], async(request, response) => {
         
                 // Téléchargez le fichier sur le serveur FTP distant
                 await client.upload(readStream, remotePath);
-    
+
                 const video = await Video.create({
                     ...request.body,
-                    username: user.username
+                    username: user.username,
+                    //file_name: filename
                 })
             
                 user.videos.push(video.id);
@@ -64,17 +63,15 @@ router.post('/', [isRegister, validateVideo], async(request, response) => {
     
                 console.log(filename);
                 console.log('Video uploaded');
-                res.status(200).send('Video uploaded');
-    
+                response.status(201).send(video);
             } catch (error) {
                 console.error('Error uploading video:', error);
-                res.status(500).send('Error uploading video');
+                response.status(500).send('Error uploading video');
             } finally {
                 client.close();
             }
         });
-    
-        response.status(201).json(video);
+        request.pipe(busboy); 
     }
 })
 
