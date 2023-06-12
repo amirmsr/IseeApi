@@ -90,7 +90,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/VideoCommentDetails'
+                  $ref: '#/components/schemas/CommentDetails'
         '404':
           $ref: '#/components/responses/404'
         '500':
@@ -224,11 +224,33 @@ paths:
           $ref: '#/components/responses/403'
         '404':
           $ref: '#/components/responses/404'
+  /users/profile:
+    get:
+      tags:
+        - User
+      summary: Get user profile (Register)
+      operationId: getUserProfile
+      parameters:
+        - in: header
+          name: token
+          schema:
+            type: string
+            format: uuid
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetails'
+        '404':
+          $ref: '#/components/responses/404'
   /users/{username}:
     get:
       tags:
         - User
-      summary: Get user by username (Admin or current user)
+      summary: Get user by username (Admin)
       operationId: getUserByUsername
       parameters:
         - in: header
@@ -315,8 +337,14 @@ paths:
     get:
       tags:
         - Videos
-      summary: Get all videos
+      summary: Get all videos or search video by title
       operationId: getAllVideos
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          required: false
       responses:
         '200':
           description: Successful operation
@@ -356,16 +384,16 @@ paths:
           $ref: '#/components/responses/406'
         '500':
           $ref: '#/components/responses/500'
-  /videos/{identifier}:
+  /videos/{id}:
     get:
       tags:
         - Videos
-      summary: Get a video by ID or by username
-      operationId: getVideoByIdOrUsername
+      summary: Get a video by ID
+      operationId: getVideoByI
       parameters:
-        - name: identifier
+        - name: id
           in: path
-          description: Video ID or username
+          description: Video ID
           required: true
           schema:
             type: string
@@ -380,7 +408,6 @@ paths:
           $ref: '#/components/responses/404'
         '500':
           $ref: '#/components/responses/500'
-  /videos/{id}:
     put:
       tags:
         - Videos
@@ -436,32 +463,6 @@ paths:
       responses:
         '204':
           description: Video deleted successfully
-        '404':
-          $ref: '#/components/responses/404'
-        '500':
-          $ref: '#/components/responses/500'
-  /videos/search:
-    get:
-      tags:
-        - Videos
-      summary: Get videos by search
-      operationId: getVideosBySearch
-      parameters:
-        - name: search
-          in: query
-          description: Search text
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items: 
-                  $ref: '#/components/schemas/VideoDetails'
         '404':
           $ref: '#/components/responses/404'
         '500':
@@ -573,33 +574,6 @@ components:
         date:
           type: string
           format: date-time
-    UserCommentDetails:
-      title: UserCommentDetails
-      type: object
-      allOf: 
-        - $ref: '#/components/schemas/IdEntity'
-      properties:
-        id_video:
-          type: string
-          format: uuid
-        contenu:
-          type: string
-        date:
-          type: string
-          format: date-time
-    VideoCommentDetails:
-      title: VideoCommentDetails
-      type: object
-      allOf: 
-        - $ref: '#/components/schemas/IdEntity'
-      properties:
-        username:
-          type: string
-        contenu:
-          type: string
-        date:
-          type: string
-          format: date-time
     UserRequest:
       title: UserRequest
       type: object
@@ -624,16 +598,18 @@ components:
         videos:
           type: array
           items:
-            $ref: '#/components/schemas/UserVideoDetails'
+            $ref: '#/components/schemas/VideoDetails'
         comments:
           type: array
           items:
-            $ref: '#/components/schemas/UserCommentDetails'
+            $ref: '#/components/schemas/CommentDetails'
     VideoRequest:
       title: VideoRequest
       type: object
       properties:
         title:
+          type: string
+        description:
           type: string
     VideoDetails:
       title: VideoDetails
@@ -642,6 +618,8 @@ components:
         - $ref: '#/components/schemas/IdEntity'
         - $ref: '#/components/schemas/VideoRequest'
       properties:
+        file_name:
+          type: string
         username:
           type: string
         hidden:
@@ -656,28 +634,7 @@ components:
         comments:
           type: array
           items: 
-            $ref: '#/components/schemas/VideoCommentDetails'
-    UserVideoDetails:
-      title: UserVideoDetails
-      type: object
-      allOf: 
-        - $ref: '#/components/schemas/IdEntity'
-      properties:
-        title:
-          type: string
-        hidden:
-          type: boolean
-        blocked:
-          type: boolean
-        uploadDate:
-          type: string
-          format: date-time
-        views:
-          type: integer
-        comments:
-          type: array
-          items: 
-            $ref: '#/components/schemas/VideoCommentDetails'
+            $ref: '#/components/schemas/CommentDetails'
     LoginRequest:
       title: LoginRequest
       type: object

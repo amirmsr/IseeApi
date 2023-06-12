@@ -9,7 +9,10 @@ const router = express.Router();
 
 router.get('/', async(request, response) => {
     const search = request.query.search
-    let query = {};
+    const query = {
+        blocked: false,
+        hidden: false
+    };
 
     if (search) {
         query.$or = [
@@ -18,12 +21,12 @@ router.get('/', async(request, response) => {
         ];
     }
 
-    const videos = await Video.find(query).populate("comments");
+    const videos = await Video.find(query).populate("comments").sort({ date_ajout: -1 });
     response.status(200).json(videos)
 })
 
 router.post('/', [isRegister, validateVideo], async(request, response) => {
-    const busboy = Busboy({ headers: req.headers });
+    const busboy = Busboy({ headers: request.headers });
     const user = await User.findOne({"username": request.username})
 
     const videoAlreadyExist = await Video.exists({"title": request.body.title, "username": user.username})

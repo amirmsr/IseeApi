@@ -31,7 +31,9 @@ const loginVerifSchema = yup.object({
 
 const videoVerifSchema = yup.object({
     body: yup.object({
-        title: yup.string().required()
+        title: yup.string().required(),
+        description: yup.string().required(),
+        file_name: yup.string().required()
     })
 })
 
