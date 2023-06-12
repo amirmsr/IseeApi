@@ -59,19 +59,6 @@ const VideoSchema = new mongoose.Schema({
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }]
 });
 
-const ImageSchema = new mongoose.Schema({
-    nom_fichier: String,
-    auteur: String,
-    url:String,
-    description:String,
-    cache: {type: Boolean, default: false},
-    blocked: {type: Boolean, default: false},
-    nombre_vue: {type: Number, default: 0},
-    date_ajout: {type: Date, default: new Date()},
-    comments: [CommentSchema]
-})
-
-
 const UserSchema = new mongoose.Schema({
     email: String,
     username: String,
@@ -79,11 +66,9 @@ const UserSchema = new mongoose.Schema({
     isAdmin: {type: Boolean, default: false},
     verified: {type: Boolean, default: false},
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Comment' }],
-    videos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Video' }],
-    images: [ImageSchema]
+    videos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Video' }]
 })
 
 export const User = mongoose.model("User", UserSchema)
 export const Video = mongoose.model("Video", VideoSchema)
 export const Comment = mongoose.model("Comment", CommentSchema)
-export const Image = mongoose.model("Image", ImageSchema)

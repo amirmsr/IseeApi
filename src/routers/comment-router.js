@@ -1,5 +1,5 @@
 import express, { response } from "express";
-import { Comment, Video, Image, User } from "../mongo.js";
+import { Comment, Video, User } from "../mongo.js";
 import { isAdmin, isAdminOrCommentOwner, isRegister } from "../middlewares/auth-middleware.js";
 import { validateComment, validateParamId } from "../middlewares/validation-midleware.js";
 import { io } from "../server.js";

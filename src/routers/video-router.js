@@ -29,6 +29,8 @@ router.post('/', isRegister, async(request, response) => {
     const busboy = Busboy({ headers: request.headers });
     const user = await User.findOne({"username": request.username})
 
+    console.log(request.body.title)
+
     const videoAlreadyExist = await Video.exists({"title": request.body.title, "username": user.username})
 
     if (videoAlreadyExist) {
@@ -51,24 +53,26 @@ router.post('/', isRegister, async(request, response) => {
         
                 // Téléchargez le fichier sur le serveur FTP distant
                 await client.upload(readStream, remotePath);
-
-                const video = await Video.create({
-                    ...request.body,
-                    username: user.username,
-                    //file_name: filename
-                })
-            
-                user.videos.push(video.id);
-                await user.save();
     
-                console.log(filename);
                 console.log('Video uploaded');
-                response.status(201).send(video);
             } catch (error) {
                 console.error('Error uploading video:', error);
                 response.status(500).send('Error uploading video');
             } finally {
+                const video = await Video.create({
+                    ...request.body,
+                    username: user.username,
+                    file_name: filename.filename
+                })
+            
+                user.videos.push(video.id);
+                await user.save();
+
+                console.log(request.body);
+
                 client.close();
+
+                response.status(201).send(video);
             }
         });
         request.pipe(busboy); 
