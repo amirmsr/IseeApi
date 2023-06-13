@@ -5,6 +5,7 @@ import { validateParamId, validateVideo } from '../middlewares/validation-midlew
 import { isAdmin, isAdminOrVideoOwner, isRegister } from '../middlewares/auth-middleware.js';
 import Busboy from 'busboy';
 import {Client} from "basic-ftp"
+import videoVerifSchema from '../middlewares/validation-midleware.js';
 
 dotenv.config()
 
@@ -28,65 +29,74 @@ router.get('/', async(request, response) => {
     response.status(200).json(videos)
 })
 
+// LE FICHIER DOIT ETRE ENVOYÉ EN DERNIER DANS LA REQUETE
 router.post('/', isRegister, async(request, response) => {
-    const busboy = new Busboy({ headers: request.headers });
+    const busboy = Busboy({ headers: request.headers });
 
     const user = await User.findOne({ "username": request.username });
 
-    const videoAlreadyExist = await Video.exists({ "title": request.body.title, "username": user.username });
+    let file_name = ""
 
-    if (videoAlreadyExist) {
-        response.status(406).json("You already have a video with this name");
-        return;
-    }
-
-    const formData = {};
+    const validateVideo = async () => {
+        try {
+            await videoVerifSchema.validate(request.body);
+        } catch (error) {
+            response.status(400).send(error.message);
+            return false;
+        }
+        return true;
+    };
+    
 
     busboy.on('field', (fieldname, value) => {
-        formData[fieldname] = value;
-    });
+        request.body[fieldname] = value;
+    })
 
     busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
+        file_name = filename.filename
+
+        if (await Video.exists({ title: request.body.title })) {
+            response.status(400).send('Video with the same title already exists');
+            return;
+        }
+
         const client = new Client();
-        try {
-            await client.access({
+
+        await client.access({
             host: process.env.FTP_HOST, // Remplacez par l'adresse du serveur FTP distant
             user: 'User',
             port: 21
-            });
-    
-            // Chemin de destination du fichier sur le serveur FTP distant
-            const remotePath = '/DESKTOP-CV36JEK/Users/clopa/Documents/SupInfo/B3/Cours/3PROJ/Infra_Test/TestLocal/' + filename.filename;
-    
-            // Créez un flux de lecture pour le fichier
-            const readStream = file;
-    
-            // Téléchargez le fichier sur le serveur FTP distant
-            await client.upload(readStream, remotePath);
+        });
 
-            console.log('Video uploaded');
-        } catch (error) {
-            console.error('Error uploading video:', error);
-            response.status(500).send('Error uploading video');
-            return
-        } finally {
-            const video = await Video.create({
-                ...formData,
-                username: user.username,
-                file_name: filename.filename
-            })
-        
-            user.videos.push(video.id);
-            await user.save();
+        // Chemin de destination du fichier sur le serveur FTP distant
+        const remotePath = '/DESKTOP-CV36JEK/Users/clopa/Documents/SupInfo/B3/Cours/3PROJ/Infra_Test/TestLocal/' + filename.filename;
 
-            client.close();
+        // Créez un flux de lecture pour le fichier
+        const readStream = file;
 
-            response.status(201).send(video);
-        }
+        // Téléchargez le fichier sur le serveur FTP distant
+        await client.upload(readStream, remotePath);
+
+        client.close();
+    });
+
+    busboy.on('error', (error) => {
+        console.error('Error uploading video:', error);
+        response.status(500).send('Error uploading video');
+        return;
     });
 
     busboy.on('finish', async () => {
-        console.log(request.body)
+        const video = await Video.create({
+            ...request.body,
+            username: user.username,
+            file_name: file_name
+        })
+    
+        user.videos.push(video.id);
+        await user.save();
+
+        response.status(201).send(video);
     });
 
     request.pipe(busboy); 
