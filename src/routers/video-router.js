@@ -5,7 +5,6 @@ import { validateParamId, validateVideo } from '../middlewares/validation-midlew
 import { isAdmin, isAdminOrVideoOwner, isRegister } from '../middlewares/auth-middleware.js';
 import Busboy from 'busboy';
 import {Client} from "basic-ftp"
-import videoVerifSchema from '../middlewares/validation-midleware.js';
 
 dotenv.config()
 
@@ -37,25 +36,30 @@ router.post('/', isRegister, async(request, response) => {
 
     let file_name = ""
 
-    const validateVideo = async () => {
-        try {
-            await videoVerifSchema.validate(request.body);
-        } catch (error) {
-            response.status(400).send(error.message);
-            return false;
-        }
-        return true;
-    };
-    
+    let fileUploaded = false
 
     busboy.on('field', (fieldname, value) => {
         request.body[fieldname] = value;
     })
 
     busboy.on('file', async (fieldname, file, filename, encoding, mimetype) => {
-        file_name = filename.filename
+        if (!request.body.title || !request.body.description) {
+            response.status(400).send('Title and description are required');
+            return;
+        }
 
-        if (await Video.exists({ title: request.body.title })) {
+        if (!filename.mimeType.startsWith("video/")) {
+            response.status(400).send('Uploaded file is not a video');
+            return;
+        }
+
+        const originalFileName = filename.filename;
+        const timestamp = Date.now().toString();
+        file_name = `${timestamp}_${user.username}_${originalFileName}`;
+
+        console.log(file_name)
+
+        if (await Video.exists({ title: request.body.title, username: user.username })) {
             response.status(400).send('Video with the same title already exists');
             return;
         }
@@ -69,7 +73,7 @@ router.post('/', isRegister, async(request, response) => {
         });
 
         // Chemin de destination du fichier sur le serveur FTP distant
-        const remotePath = '/DESKTOP-CV36JEK/Users/clopa/Documents/SupInfo/B3/Cours/3PROJ/Infra_Test/TestLocal/' + filename.filename;
+        const remotePath = '/DESKTOP-CV36JEK/Users/clopa/Documents/SupInfo/B3/Cours/3PROJ/Infra_Test/TestLocal/' + file_name;
 
         // Créez un flux de lecture pour le fichier
         const readStream = file;
@@ -77,26 +81,33 @@ router.post('/', isRegister, async(request, response) => {
         // Téléchargez le fichier sur le serveur FTP distant
         await client.upload(readStream, remotePath);
 
+        fileUploaded = true
+
         client.close();
     });
 
     busboy.on('error', (error) => {
         console.error('Error uploading video:', error);
+        fileUploaded = false
         response.status(500).send('Error uploading video');
         return;
     });
 
     busboy.on('finish', async () => {
-        const video = await Video.create({
-            ...request.body,
-            username: user.username,
-            file_name: file_name
-        })
+        if (fileUploaded) {
+            const video = await Video.create({
+                ...request.body,
+                username: user.username,
+                file_name: file_name
+            })
+        
+            user.videos.push(video.id);
+            await user.save();
     
-        user.videos.push(video.id);
-        await user.save();
-
-        response.status(201).send(video);
+            response.status(201).send(video);
+        } else {
+            response.status(500).send('You have to select a file');
+        }
     });
 
     request.pipe(busboy); 
