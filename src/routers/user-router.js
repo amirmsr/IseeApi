@@ -25,14 +25,25 @@ dotenv.config()
 const router = express.Router()
 
 router.get("/", isAdmin, async (request, response) => {
+    const page = parseInt(request.query.page) || 1;
+    const limit = parseInt(request.query.limit) || 10;
+
+    const totalUsers = await User.countDocuments();
+    const totalPages = Math.ceil(totalUsers / limit);
+    const skip = (page - 1) * limit;
+
     const users = await User.find().populate("comments").populate({
         path: "videos",
         populate: {
           path: "comments",
           model: "Comment",
         },
-    });
-    response.status(200).json(users)
+    }).skip(skip).limit(limit);;
+    response.status(200).json({
+        users,
+        currentPage: page,
+        totalPages
+    })
 })
 
 router.post("/", validateUser, async (request, response) => {

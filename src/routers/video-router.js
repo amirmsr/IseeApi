@@ -12,6 +12,9 @@ const router = express.Router();
 
 router.get('/', async(request, response) => {
     const search = request.query.search
+    const page = parseInt(request.query.page) || 1;
+    const limit = parseInt(request.query.limit) || 10;
+
     const query = {
         blocked: false,
         hidden: false
@@ -24,8 +27,20 @@ router.get('/', async(request, response) => {
         ];
     }
 
-    const videos = await Video.find(query).populate("comments").sort({ date_ajout: -1 });
-    response.status(200).json(videos)
+    const totalVideos = await Video.countDocuments(query);
+    const totalPages = Math.ceil(totalVideos / limit);
+    const skip = (page - 1) * limit;
+
+    const videos = await Video.find(query).populate("comments")
+    .sort({ date_ajout: -1 })
+    .skip(skip)
+    .limit(limit);;
+
+    response.status(200).json({
+        videos,
+        currentPage: page,
+        totalPages
+    })
 })
 
 // LE FICHIER DOIT ETRE ENVOYÉ EN DERNIER DANS LA REQUETE
