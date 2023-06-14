@@ -7,19 +7,6 @@ import { validateUser, validateLogin } from "../middlewares/validation-midleware
 import { isRegister, isAdmin, isAdminOrCurrentUser } from "../middlewares/auth-middleware.js"
 import { sendVerificationEmail } from "../mailer.js"
 
-const colorPalettes = [
-    ['F4D166', 'F7A072', 'E76F51', '6B705C', '264653'],
-    ['FF00FF', 'FF0000', 'FFFF00', '00FF00', '00FFFF'],
-    ['C0C0C0', '808080', '000000', 'FFFFFF', 'FFD700'],
-    ['F72585', 'B5179E', '7209B7', '560BAD', '480CA8'],
-    ['FEC5BB', 'FCD5CE', 'FAE1DD', 'F8EDEB', 'E8E8E4'],
-    ['F94144', 'F3722C', 'F8961E', 'F9C74F', '90BE6D'],
-    ['0A0908', '12100E', '1E201C', '2B2C28', '323934'],
-    ['A9BCD0', '58A4B0', '373F51', 'DDBC95', 'B07A46'],
-    ['FF0099', 'FF66CC', 'FF99FF', 'CC99FF', '9966FF'],
-    ['22223B', '4A4E69', '9A8C98', 'C9ADA7', 'F2E9E4']
-];
-
 dotenv.config()
 
 const router = express.Router()
@@ -62,12 +49,10 @@ router.post("/", validateUser, async (request, response) => {
                 response.status(406).json(error)
             } else {
                 await sendVerificationEmail(request.body.email, request.body.username)
-
-                const randomColorPalette = colorPalettes[Math.floor(Math.random() * 10)]
                 
                 const newUser = await User.create({
                     ...request.body,
-                    profilePicture: `https://source.boringavatars.com/beam/500/${request.body.username}?colors=${randomColorPalette[0]},${randomColorPalette[1]},${randomColorPalette[2]},${randomColorPalette[3]},${randomColorPalette[4]}`,
+                    profilePicture: `https://source.boringavatars.com/beam/500/${request.body.username}`,
                     password: hashedPasswd
                 })
                 response.status(201).json(newUser)
