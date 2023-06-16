@@ -30,8 +30,7 @@ router.post("/", [isRegister, validateComment], async (request, response) => {
     await video.save()
     await user.save()
 
-    // Émettre le commentaire en temps réel
-    //io.emit("comments", comment);
+    io.emit("comments", comment);
 
     response.status(201).json(comment);
   } else {
@@ -48,8 +47,7 @@ router.get("/:videoId", validateParamId, async (request, response) => {
       if (video) {
         const comments = await Comment.find({ id_video: videoId });
   
-        // Émettre les commentaires en temps réel à l'aide de Socket.IO
-        //io.emit("comments", comments);
+        io.emit("comments", comments);
   
         response.status(200).json(comments);
       } else {

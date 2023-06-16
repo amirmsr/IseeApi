@@ -53,7 +53,7 @@ router.post("/", validateUser, async (request, response) => {
                 
                 const newUser = await User.create({
                     ...request.body,
-                    profilePicture: `https://source.boringavatars.com/beam/500/${request.body.username}`,
+                    profilePicture: `https://source.boringavatars.com/beam/100/${request.body.username}`,
                     password: hashedPasswd
                 })
                 response.status(201).json(newUser)

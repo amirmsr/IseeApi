@@ -43,7 +43,7 @@ export const isRegister =  async (request, response, next) => {
         return
     }
 
-    request.username = user.name
+    request.username = user.username
     next();
 }
 
