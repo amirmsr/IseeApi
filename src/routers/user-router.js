@@ -6,6 +6,7 @@ import bcrypt from "bcrypt"
 import { validateUser, validateLogin } from "../middlewares/validation-midleware.js"
 import { isRegister, isAdmin, isAdminOrCurrentUser } from "../middlewares/auth-middleware.js"
 import { sendVerificationEmail } from "../mailer.js"
+import { verifyJwt } from "../middlewares/auth-middleware.js"
 
 dotenv.config()
 
@@ -81,7 +82,8 @@ router.post("/login", validateLogin, async  (request, response) => {
         }
         if (result) {
             const token = jsonwebtoken.sign({name: request.body.username}, process.env.SECRET, {expiresIn: 1000})
-            response.status(201).json( {"user": user.username, "isAdmin": user.isAdmin, "token": token });
+            response.cookie('jwt', token, {httpOnly: true})
+            response.status(201).json("Logged in successfully");
         } else {
             response.status(400).json("Incorrect password")
         }
@@ -89,9 +91,14 @@ router.post("/login", validateLogin, async  (request, response) => {
 })
 
 router.post("/logout", isRegister, async  (request, response) => {
+    response.clearCookie("jwt")
     response.status(201).json("Success Logout")
 })
 
+router.get("/profil", async (request, response) => {
+    const user = await verifyJwt(request.cookies.jwt)
+    response.status(200).json({"user": user || null})
+})
 
 //TODO Faire la page de verification et mettre la requette en patch
 
@@ -113,18 +120,6 @@ router.get("/verify", async (request, response) => {
         response.status(200).send("Mail verified succesfully")
     })
 })
-
-router.get("/profil", isRegister, async (request, response) => {
-    console.log("username: " + request.username)
-    const user = await User.findOne({ username: request.username }).populate("comments").populate({
-        path: "videos",
-        populate: {
-          path: "comments",
-          model: "Comment",
-        },
-    });
-    response.status(200).json(user)
-});
 
 
 router.get("/:username", isAdminOrCurrentUser, async (request, response) => {

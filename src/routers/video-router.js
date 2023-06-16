@@ -93,10 +93,12 @@ router.post('/', isRegister, async(request, response) => {
         // Créez un flux de lecture pour le fichier
         const readStream = file;
 
+        fileUploaded = true
+
+
         // Téléchargez le fichier sur le serveur FTP distant
         await client.upload(readStream, remotePath);
 
-        fileUploaded = true
 
         client.close();
     });
