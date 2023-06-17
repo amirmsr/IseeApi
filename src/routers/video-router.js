@@ -167,11 +167,11 @@ router.patch("/:id/watch", async(request, response) => {
     const id = request.params.id
     const video = await Video.findById(id)
     if (video.blocked || video.hidden) {
+        response.status(401).json("You cannot watch this video")
+    } else {
         video.nombre_vue++
         await video.save()
         response.status(200).json(video)
-    } else {
-        response.status(401).json("You cannot watch this video")
     }
 })
 

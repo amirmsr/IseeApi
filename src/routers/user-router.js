@@ -14,7 +14,7 @@ const router = express.Router()
 
 router.get("/", isAdmin, async (request, response) => {
     const page = parseInt(request.query.page) || 1;
-    const limit = parseInt(request.query.limit) || 10;
+    const limit = parseInt(request.query.limit) || 9;
 
     const totalUsers = await User.countDocuments();
     const totalPages = Math.ceil(totalUsers / limit);
