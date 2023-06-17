@@ -13,7 +13,7 @@ const router = express.Router();
 router.get('/', async(request, response) => {
     const search = request.query.search
     const page = parseInt(request.query.page) || 1;
-    const limit = parseInt(request.query.limit) || 10;
+    const limit = parseInt(request.query.limit) || 6;
 
     const query = {
         blocked: false,

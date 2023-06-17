@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import bcrypt  from "bcrypt"
 import dotenv from "dotenv"
-import { fa, faker } from "@faker-js/faker"
+import { faker } from "@faker-js/faker"
 
 dotenv.config()
 
@@ -76,7 +76,7 @@ export const User = mongoose.model("User", UserSchema)
 export const Video = mongoose.model("Video", VideoSchema)
 export const Comment = mongoose.model("Comment", CommentSchema)
 
-// for (let index = 0; index < 10; index++) {
+// for (let index = 0; index < 20; index++) {
 //     const firstName = faker.person.firstName()
 //     const lastName = faker.person.lastName()
 //     const fakeUsername = faker.internet.userName({firstName: firstName, lastName: lastName})
@@ -85,11 +85,11 @@ export const Comment = mongoose.model("Comment", CommentSchema)
 //         if (error) {
 //             console.log(error)
 //         } else {
-//             
+            
 //             await User.create({
 //                 email: faker.internet.exampleEmail({firstName: firstName, lastName: lastName}),
 //                 username: fakeUsername,
-//                 profilePicture: `https://source.boringavatars.com/beam/500/${firstName}%20${lastName},
+//                 profilePicture: `https://source.boringavatars.com/beam/100/${firstName}%20${lastName}`,
 //                 password: hashedPasswd,
 //                 isAdmin: false,
 //                 verified: true

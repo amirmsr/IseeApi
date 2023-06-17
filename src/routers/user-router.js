@@ -12,21 +12,44 @@ dotenv.config()
 
 const router = express.Router()
 
-router.get("/", isAdmin, async (request, response) => {
+router.get("/", async (request, response) => {
+    const user = await verifyJwt(request.cookies.jwt)
+    
     const page = parseInt(request.query.page) || 1;
-    const limit = parseInt(request.query.limit) || 10;
+    const limit = parseInt(request.query.limit) || 9;
 
     const totalUsers = await User.countDocuments();
     const totalPages = Math.ceil(totalUsers / limit);
     const skip = (page - 1) * limit;
 
-    const users = await User.find().populate("comments").populate({
-        path: "videos",
-        populate: {
-          path: "comments",
-          model: "Comment",
-        },
-    }).skip(skip).limit(limit);;
+    let users;
+
+    if (user && user.isAdmin) {
+        users = await User.find()
+            .populate("comments")
+            .populate({
+                path: "videos",
+                populate: {
+                    path: "comments",
+                    model: "Comment",
+                },
+            })
+            .skip(skip)
+            .limit(limit);
+    } else {
+        users = await User.find()
+            .select('username profilePicture videos _id')
+            .populate({
+                path: "videos",
+                populate: {
+                    path: "comments",
+                    model: "Comment",
+                },
+            })
+            .skip(skip)
+            .limit(limit);
+    }
+
     response.status(200).json({
         users,
         currentPage: page,
