@@ -111,8 +111,6 @@ router.get("/profil", async (request, response) => {
     response.status(200).json({"user": user || null})
 })
 
-//TODO Faire la page de verification et mettre la requette en patch
-
 router.get("/verify", async (request, response) => {
     const token = request.query.token
     jsonwebtoken.verify(token, process.env.SECRET, async (error, req) => {

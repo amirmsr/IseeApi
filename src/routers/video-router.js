@@ -72,8 +72,6 @@ router.post('/', isRegister, async(request, response) => {
         const timestamp = Date.now().toString();
         file_name = `${timestamp}_${user.username}_${originalFileName}`;
 
-        console.log(file_name)
-
         if (await Video.exists({ title: request.body.title, username: user.username })) {
             response.status(400).send('Video with the same title already exists');
             return;
@@ -82,21 +80,18 @@ router.post('/', isRegister, async(request, response) => {
         const client = new Client();
 
         await client.access({
-            host: process.env.FTP_HOST, // Remplacez par l'adresse du serveur FTP distant
+            host: process.env.FTP_HOST,
             user: 'User',
             port: 21
         });
 
-        // Chemin de destination du fichier sur le serveur FTP distant
         const remotePath = '/DESKTOP-CV36JEK/Users/clopa/Documents/SupInfo/B3/Cours/3PROJ/Infra_Test/TestLocal/' + file_name;
 
-        // Créez un flux de lecture pour le fichier
         const readStream = file;
 
         fileUploaded = true
 
 
-        // Téléchargez le fichier sur le serveur FTP distant
         await client.upload(readStream, remotePath);
 
 
