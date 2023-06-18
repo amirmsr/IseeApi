@@ -94,7 +94,7 @@ export const isAdminOrCommentOwner = async (request, response, next) => {
         return
     }
 
-    const video = await Video.findOne({"username": req.name})
+    const video = await Video.findOne({"username": user.username})
     
     if (!video) {
         response.status(404).send("Video not found")
@@ -109,7 +109,7 @@ export const isAdminOrCommentOwner = async (request, response, next) => {
     }
 
     if (user.isAdmin || comment.username === video.username) {
-        request.username = user.name
+        request.username = user.username
         next();
     } else {
         response.status(401).send("Unauthorized");
