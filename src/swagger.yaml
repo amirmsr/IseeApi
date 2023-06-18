@@ -5,12 +5,12 @@ info:
 servers:
   - url: https://localhost:3000
 tags:
-  - name: Comments
-    description: Comments of a video
   - name: User
     description: User management
   - name: Videos
     description: Video management
+  - name: Comments
+    description: Comments of a video
 paths:
   /comments:
     get:
@@ -18,13 +18,6 @@ paths:
         - Comments
       summary: Get all comments (Admin)
       operationId: getAllComments
-      parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
       responses:
         '200':
           description: Successful operation
@@ -42,12 +35,6 @@ paths:
       summary: Create a comment (Register)
       operationId: createComment
       parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
         - in: query
           name: videoId
           schema:
@@ -102,12 +89,6 @@ paths:
       summary: Delete a comment by ID (Admin or comment owner)
       operationId: deleteCommentById
       parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
         - name: id
           in: path
           description: Comment ID
@@ -127,13 +108,6 @@ paths:
         - User
       summary: Get all users (Admin)
       operationId: getAllUsers
-      parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
       responses:
         '200':
           description: Successful operation
@@ -142,7 +116,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/UserDetails'
+                  $ref: '#/components/schemas/UserDetailsPagination'
         '500':
           $ref: '#/components/responses/500'
     post:
@@ -194,29 +168,15 @@ paths:
         - User
       summary: User logout (Register)
       operationId: logoutUser
-      parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
       responses:
         '201':
           description: Successful logout
   /users/verify:
-    patch:
+    get:
       tags:
         - User
       summary: Verify user email
       operationId: verifyEmail
-      parameters:
-        - name: token
-          in: query
-          description: Verification token
-          required: true
-          schema:
-            type: string
       responses:
         '200':
           description: Mail verified successfully
@@ -228,15 +188,8 @@ paths:
     get:
       tags:
         - User
-      summary: Get user profile (Register)
+      summary: Get user profile
       operationId: getUserProfile
-      parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
       responses:
         '200':
           description: Successful operation
@@ -253,12 +206,6 @@ paths:
       summary: Get user by username (Admin)
       operationId: getUserByUsername
       parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
         - name: username
           in: path
           description: Username
@@ -280,12 +227,6 @@ paths:
       summary: Update user by username (Admin or current user)
       operationId: updateUserByUsername
       parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
         - name: username
           in: path
           description: Username
@@ -314,12 +255,6 @@ paths:
       summary: Delete user by username (Admin or current user)
       operationId: deleteUserByUsername
       parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
         - name: username
           in: path
           description: Username
@@ -353,7 +288,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/VideoDetails'
+                  $ref: '#/components/schemas/VideoDetailsPagination'
         '500':
           $ref: '#/components/responses/500'
     post:
@@ -361,13 +296,6 @@ paths:
         - Videos
       summary: Create a new video (Register)
       operationId: createVideo
-      parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
       requestBody:
         content:
           application/json:
@@ -414,12 +342,6 @@ paths:
       summary: Update a video by ID (Admin or video owner)
       operationId: updateVideoById
       parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
         - name: id
           in: path
           description: Video ID
@@ -448,12 +370,6 @@ paths:
       summary: Delete a video by ID (Admin or video owner)
       operationId: deleteVideoById
       parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
         - name: id
           in: path
           description: Video ID
@@ -498,12 +414,6 @@ paths:
       summary: Hide or unhide a video (Admin or video owner)
       operationId: hideVideo
       parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
         - name: id
           in: path
           description: Video ID
@@ -528,12 +438,6 @@ paths:
       summary: Block or unblock a video (Admin)
       operationId: blockVideo
       parameters:
-        - in: header
-          name: token
-          schema:
-            type: string
-            format: uuid
-          required: true
         - name: id
           in: path
           description: Video ID
@@ -591,6 +495,8 @@ components:
         - $ref: '#/components/schemas/IdEntity'
         - $ref: '#/components/schemas/UserRequest'
       properties:
+        profilePicture:
+          type: string
         isAdmin:
           type: boolean
         verified:
@@ -603,6 +509,28 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/CommentDetails'
+    UserArray:
+      title: UserArray
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserDetails'
+    UserDetailsPagination:
+      title: UserDetailsPagination
+      type: object
+      allOf: 
+        - $ref: '#/components/schemas/UserArray'
+        - $ref: '#/components/schemas/Pagination'
+    Pagination:
+      title: Pagination
+      type: object
+      properties:
+        currentPage:
+          type: string
+        totalPages:
+          type: string
     VideoRequest:
       title: VideoRequest
       type: object
@@ -635,6 +563,20 @@ components:
           type: array
           items: 
             $ref: '#/components/schemas/CommentDetails'
+    VideoArray:
+      title: VideoArray
+      type: object
+      properties:
+        videos:
+          type: array
+          items:
+            $ref: '#/components/schemas/VideoDetails'
+    VideoDetailsPagination:
+      title: VideoDetailsPagination
+      type: object
+      allOf: 
+        - $ref: '#/components/schemas/VideoArray'
+        - $ref: '#/components/schemas/Pagination'
     LoginRequest:
       title: LoginRequest
       type: object
@@ -651,8 +593,6 @@ components:
           type: string
         isAdmin:
           type: boolean
-        token:
-          type: string
     ErrorModel:
       title: ErrorModel
       description: Error model following RFC7807
