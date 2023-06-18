@@ -15,12 +15,21 @@ const router = express.Router()
 router.get("/", isAdmin, async (request, response) => {
     const page = parseInt(request.query.page) || 1;
     const limit = parseInt(request.query.limit) || 9;
+    const search = request.query.search;
 
-    const totalUsers = await User.countDocuments();
+    let query = {
+        isAdmin: false
+    };    
+
+    if (search) {
+        query.username = { $regex: search, $options: 'i' };
+    }
+
+    const totalUsers = await User.countDocuments(query);
     const totalPages = Math.ceil(totalUsers / limit);
     const skip = (page - 1) * limit;
 
-    const users = await User.find().populate("comments").populate({
+    const users = await User.find(query).populate("comments").populate({
         path: "videos",
         populate: {
           path: "comments",
@@ -31,8 +40,10 @@ router.get("/", isAdmin, async (request, response) => {
         users,
         currentPage: page,
         totalPages
-    })
-})
+    });
+});
+
+  
 
 router.post("/", validateUser, async (request, response) => {
     const usernameAlreadyExist = await User.exists({"username": request.body.username})
